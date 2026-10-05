@@ -31,3 +31,32 @@ Use device secure storage only for user session tokens, not as a substitute for 
 expo.dev
 
 This is a functional starter design, but I have not executed or tested the code.
+
+How to run
+Install Node.js.
+
+Create a folder named wine-cellar-web.
+
+Add:
+
+server.js
+
+package.json
+
+.env based on .env.example
+
+public/index.html
+
+Run:
+
+npm install
+Create .env:
+
+OPENAI_API_KEY=your_real_key_here
+PORT=3000
+Start server:
+
+npm start
+Open:
+
+http://localhost:3000

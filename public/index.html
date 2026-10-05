@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wine Cellar</title>
+  <style>
+    :root {
+      --bg: #f5f1eb;
+      --card: #ffffff;
+      --accent: #7b1e3a;
+      --accent-2: #a63d5a;
+      --text: #2d2a26;
+      --muted: #6f6a63;
+      --border: #ddd3c7;
+      --empty: #ece7df;
+      --rack: #6b4f3a;
+      --slot: #f8f6f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+      flex: 1;
+    }
+
+    .field.small {
+      max-width: 140px;
+      flex: 0 0 140px;
+    }
+
+    label {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    input, button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    input[type="file"] {
+      background: white;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      background: var(--accent-2);
+    }
+
+    button.secondary {
+      background: #b8afa5;
+    }
+
+    button.secondary:hover {
+      background: #9d948b;
+    }
+
+    .summary {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .badge {
+      background: #f1e7eb;
+      color: var(--accent);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .cellar {
+      display: grid;
+      gap: 14px;
+    }
+
+    .rack-card {
+      background: linear-gradient(180deg, #7a5a41, var(--rack));
+      border-radius: 14px;
+      padding: 14px;
+      color: white;
+    }
+
+    .rack-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rack-title {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .rack-sub {
+      font-size: 13px;
+      opacity: 0.92;
+    }
+
+    .rack-slot {
+      min-height: 130px;
+      background: var(--slot);
+      border-radius: 12px;
+      border: 2px dashed #d8c8b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      color: #5f564d;
+    }
+
+    .rack-slot.empty {
+      background: var(--empty);
+    }
+
+    .wine-card {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wine-image-wrap {
+      flex: 1;
+      min-height: 120px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .wine-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wine-info {
+      background: rgba(123, 30, 58, 0.08);
+      padding: 8px;
+      color: #2f2a26;
+    }
+
+    .wine-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .wine-meta {
+      font-size: 12px;
+      color: #5f564d;
+      margin-top: 4px;
+    }
+
+    .empty-text {
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tiny-btn {
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .notes {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 700px) {
+      .field.small {
+        max-width: 100%;
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Wine Cellar</h1>
+    <div class="subtitle">
+      Customize racks, upload a label image, and ask AI to identify the wine.
+    </div>
+
+    <div class="panel">
+      <h2>1. Create / Update Cellar</h2>
+      <div class="row">
+        <div class="field small">
+          <label for="rackCount">Number of Racks</label>
+          <input id="rackCount" type="number" min="1" max="100" value="6" />
+        </div>
+        <div class="field small">
+          <label>&nbsp;</label>
+          <button onclick="buildCellar()">Build Cellar</button>
+        </div>
+        <div class="field small">
+          <label>&nbsp;</label>
+          <button class="secondary" onclick="resetAll()">Reset All</button>
+        </div>
+      </div>
+      <div class="summary">
+        <div class="badge" id="totalRacksBadge">Racks: 6</div>
+        <div class="badge" id="filledRacksBadge">Filled: 0</div>
+        <div class="badge" id="emptyRacksBadge">Empty: 6</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Add Wine to Rack</h2>
+      <div class="row">
+        <div class="field">
+          <label for="wineName">Wine Name</label>
+          <input id="wineName" type="text" placeholder="e.g. Chateau Example" />
+        </div>
+        <div class="field">
+          <label for="producer">Producer</label>
+          <input id="producer" type="text" placeholder="e.g. Example Estate" />
+        </div>
+        <div class="field small">
+          <label for="wineVintage">Vintage</label>
+          <input id="wineVintage" type="text" placeholder="e.g. 2018" />
+        </div>
+        <div class="field small">
+          <label for="rackNumber">Rack Number</label>
+          <input id="rackNumber" type="number" min="1" value="1" />
+        </div>
+        <div class="field">
+          <label for="wineImage">Label Image</label>
+          <input id="wineImage" type="file" accept="image/*" />
+        </div>
+      </div>
+      <div class="actions">
+        <button onclick="detectWineFromImage()">Detect Wine From Image</button>
+        <button onclick="addWineToRack()">Add / Update Rack</button>
+        <button class="secondary" onclick="clearWineForm()">Clear Form</button>
+      </div>
+      <div class="status" id="statusText"></div>
+      <div class="notes" id="detectedNotes"></div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Cellar View</h2>
+      <div id="cellar" class="cellar"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "wineCellarBrowserAppWithAI";
+
+    let appState = {
+      rackCount: 6,
+      racks: []
+    };
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to parse saved state", e);
+          createEmptyRacks(6);
+        }
+      } else {
+        createEmptyRacks(6);
+      }
+    }
+
+    function createEmptyRacks(count) {
+      appState.rackCount = count;
+      appState.racks = [];
+      for (let i = 1; i <= count; i++) {
+        appState.racks.push({
+          rackNumber: i,
+          wineName: "",
+          producer: "",
+          vintage: "",
+          imageDataUrl: "",
+          detectedConfidence: "",
+          detectedNotes: ""
+        });
+      }
+    }
+
+    function buildCellar() {
+      const count = parseInt(document.getElementById("rackCount").value, 10);
+      if (!count || count < 1) {
+        alert("Please enter a valid number of racks.");
+        return;
+      }
+
+      const oldRacks = [...appState.racks];
+      createEmptyRacks(count);
+
+      for (let i = 0; i < Math.min(oldRacks.length, appState.racks.length); i++) {
+        appState.racks[i] = oldRacks[i];
+      }
+
+      saveState();
+      renderAll();
+    }
+
+    function getSelectedRackIndex() {
+      const rackNumber = parseInt(document.getElementById("rackNumber").value, 10);
+      if (!rackNumber || rackNumber < 1 || rackNumber > appState.rackCount) {
+        alert("Please enter a valid rack number.");
+        return null;
+      }
+      return rackNumber - 1;
+    }
+
+    async function detectWineFromImage() {
+      const fileInput = document.getElementById("wineImage");
+      const statusText = document.getElementById("statusText");
+      const detectedNotes = document.getElementById("detectedNotes");
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert("Please choose a label image first.");
+        return;
+      }
+
+      statusText.textContent = "Detecting wine from image...";
+      detectedNotes.textContent = "";
+
+      try {
+        const imageDataUrl = await fileToDataUrl(fileInput.files[0]);
+
+        const response = await fetch("/api/detect-wine", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ imageDataUrl })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          statusText.textContent = "AI detection failed.";
+          detectedNotes.textContent = result.details || result.error || "Unknown error";
+          return;
+        }
+
+        document.getElementById("wineName").value = result.wineName || "";
+        document.getElementById("producer").value = result.producer || "";
+        document.getElementById("wineVintage").value = result.vintage || "";
+
+        statusText.textContent = `Detection complete. Confidence: ${result.confidence || "unknown"}`;
+        detectedNotes.textContent = result.notes || "";
+
+        const rackIndex = getSelectedRackIndex();
+        if (rackIndex !== null) {
+          appState.racks[rackIndex].imageDataUrl = imageDataUrl;
+          appState.racks[rackIndex].detectedConfidence = result.confidence || "";
+          appState.racks[rackIndex].detectedNotes = result.notes || "";
+
+          if (result.labelImageUrl) {
+            appState.racks[rackIndex].imageDataUrl = result.labelImageUrl;
+          }
+
+          saveState();
+          renderAll();
+        }
+      } catch (error) {
+        statusText.textContent = "AI detection failed.";
+        detectedNotes.textContent = error.message;
+      }
+    }
+
+    async function addWineToRack() {
+      const rackIndex = getSelectedRackIndex();
+      if (rackIndex === null) return;
+
+      const wineName = document.getElementById("wineName").value.trim();
+      const producer = document.getElementById("producer").value.trim();
+      const vintage = document.getElementById("wineVintage").value.trim();
+      const fileInput = document.getElementById("wineImage");
+
+      if (!wineName) {
+        alert("Please enter a wine name or use AI detection.");
+        return;
+      }
+
+      let imageDataUrl = appState.racks[rackIndex].imageDataUrl || "";
+
+      if (fileInput.files && fileInput.files[0]) {
+        imageDataUrl = await fileToDataUrl(fileInput.files[0]);
+      }
+
+      appState.racks[rackIndex] = {
+        ...appState.racks[rackIndex],
+        rackNumber: rackIndex + 1,
+        wineName,
+        producer,
+        vintage,
+        imageDataUrl
+      };
+
+      saveState();
+      renderAll();
+      clearWineForm();
+      document.getElementById("statusText").textContent = "Rack updated.";
+    }
+
+    function removeWineFromRack(rackNumber) {
+      const rackIndex = rackNumber - 1;
+      appState.racks[rackIndex] = {
+        rackNumber,
+        wineName: "",
+        producer: "",
+        vintage: "",
+        imageDataUrl: "",
+        detectedConfidence: "",
+        detectedNotes: ""
+      };
+      saveState();
+      renderAll();
+    }
+
+    function editRack(rackNumber) {
+      const rack = appState.racks[rackNumber - 1];
+      document.getElementById("wineName").value = rack.wineName || "";
+      document.getElementById("producer").value = rack.producer || "";
+      document.getElementById("wineVintage").value = rack.vintage || "";
+      document.getElementById("rackNumber").value = rack.rackNumber;
+      document.getElementById("statusText").textContent = rack.detectedConfidence
+        ? `Stored detection confidence: ${rack.detectedConfidence}`
+        : "";
+      document.getElementById("detectedNotes").textContent = rack.detectedNotes || "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function clearWineForm() {
+      document.getElementById("wineName").value = "";
+      document.getElementById("producer").value = "";
+      document.getElementById("wineVintage").value = "";
+      document.getElementById("rackNumber").value = "1";
+      document.getElementById("wineImage").value = "";
+      document.getElementById("statusText").textContent = "";
+      document.getElementById("detectedNotes").textContent = "";
+    }
+
+    function resetAll() {
+      if (!confirm("Reset the entire cellar?")) return;
+      createEmptyRacks(6);
+      document.getElementById("rackCount").value = 6;
+      clearWineForm();
+      saveState();
+      renderAll();
+    }
+
+    function updateSummary() {
+      const filled = appState.racks.filter(r => r.wineName).length;
+      const empty = appState.rackCount - filled;
+
+      document.getElementById("totalRacksBadge").textContent = `Racks: ${appState.rackCount}`;
+      document.getElementById("filledRacksBadge").textContent = `Filled: ${filled}`;
+      document.getElementById("emptyRacksBadge").textContent = `Empty: ${empty}`;
+    }
+
+    function renderCellar() {
+      const cellar = document.getElementById("cellar");
+      cellar.innerHTML = "";
+
+      appState.racks.forEach(rack => {
+        const rackCard = document.createElement("div");
+        rackCard.className = "rack-card";
+
+        const isEmpty = !rack.wineName;
+        const imageHtml = rack.imageDataUrl
+          ? `<img src="${rack.imageDataUrl}" alt="Wine Label" />`
+          : `<div class="empty-text">No label image</div>`;
+
+        rackCard.innerHTML = `
+          <div class="rack-header">
+            <div>
+              <div class="rack-title">Rack ${rack.rackNumber}</div>
+              <div class="rack-sub">${isEmpty ? "Empty rack" : "Wine stored"}</div>
+            </div>
+          </div>
+
+          <div class="rack-slot ${isEmpty ? "empty" : ""}">
+            ${
+              isEmpty
+                ? `<div class="empty-text">No wine in this rack</div>`
+                : `
+                  <div class="wine-card">
+                    <div class="wine-image-wrap">${imageHtml}</div>
+                    <div class="wine-info">
+                      <div class="wine-name">${escapeHtml(rack.wineName)}</div>
+                      <div class="wine-meta">${rack.producer ? escapeHtml(rack.producer) : "Producer unknown"}</div>
+                      <div class="wine-meta">${rack.vintage ? "Vintage: " + escapeHtml(rack.vintage) : "Vintage not set"}</div>
+                      <div class="wine-meta">${rack.detectedConfidence ? "AI confidence: " + escapeHtml(rack.detectedConfidence) : ""}</div>
+                    </div>
+                  </div>
+                `
+            }
+          </div>
+
+          <div class="actions">
+            <button class="tiny-btn" onclick="editRack(${rack.rackNumber})">Edit</button>
+            <button class="tiny-btn secondary" onclick="removeWineFromRack(${rack.rackNumber})">Clear Rack</button>
+          </div>
+        `;
+
+        cellar.appendChild(rackCard);
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderAll() {
+      document.getElementById("rackCount").value = appState.rackCount;
+      renderCellar();
+      updateSummary();
+    }
+
+    loadState();
+    renderAll();
+  </script>
+</body>
+</html>
