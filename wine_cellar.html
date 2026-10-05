@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wine Cellar - Drag and Filter</title>
+  <style>
+    :root {
+      --bg: #0f0f10;
+      --panel: #18181b;
+      --panel-2: #202024;
+      --text: #f3f3f4;
+      --muted: #a6a6ad;
+      --accent: #8d1f42;
+      --accent-2: #b32a56;
+      --border: #2d2d33;
+      --rack: #4a3426;
+      --rack-top: #624633;
+      --empty-rack: #5a5a61;
+      --empty-slot: #808089;
+      --white: #ffffff;
+      --success: #75d38a;
+      --danger: #ff7b7b;
+      --info-box: #f1f1f3;
+      --info-text: #1f1f22;
+      --info-muted: #595964;
+      --drop-hover: #2a5a3d;
+      --drop-border: #78d69a;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px 18px 40px;
+    }
+
+    .hero {
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 34px;
+      color: var(--white);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      color: var(--white);
+    }
+
+    .compact-panel {
+      padding: 14px 16px;
+    }
+
+    .compact-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .compact-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .compact-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .compact-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .rack-stepper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #121214;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 10px;
+    }
+
+    .step-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .step-btn:hover {
+      background: var(--accent-2);
+    }
+
+    .rack-count-display {
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .rack-count-number {
+      font-size: 22px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .rack-count-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .summary {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .badge {
+      background: #111114;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .field.small {
+      flex: 0 0 140px;
+      min-width: 140px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input {
+      background: #111114;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #777780;
+    }
+
+    input[type="file"] {
+      padding: 9px 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+    }
+
+    button:hover {
+      background: var(--accent-2);
+    }
+
+    button.secondary {
+      background: #44444b;
+    }
+
+    button.secondary:hover {
+      background: #5b5b64;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .notes {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .cellar {
+      display: grid;
+      gap: 14px;
+    }
+
+    .rack-card {
+      border-radius: 18px;
+      padding: 14px;
+      border: 1px solid #3a2e27;
+      background: linear-gradient(180deg, var(--rack-top), var(--rack));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      transition: 0.2s ease;
+    }
+
+    .rack-card.empty-card {
+      border-color: #66666d;
+      background: linear-gradient(180deg, #6c6c74, var(--empty-rack));
+    }
+
+    .rack-card.drop-target {
+      outline: 2px dashed var(--drop-border);
+      box-shadow: 0 0 0 4px rgba(120,214,154,0.12);
+      background: linear-gradient(180deg, #527255, var(--drop-hover));
+    }
+
+    .rack-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .rack-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .rack-sub {
+      font-size: 13px;
+      color: #dfdfe4;
+    }
+
+    .rack-slot {
+      min-height: 120px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #f4f4f5;
+      border: 2px dashed #d5c6bb;
+      padding: 12px;
+    }
+
+    .rack-slot.empty {
+      background: var(--empty-slot);
+      border-color: #9b9ba3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .wine-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .wine-item {
+      background: var(--info-box);
+      color: var(--info-text);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #d8d8dc;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wine-item.dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+    }
+
+    .wine-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: #fff;
+    }
+
+    .wine-info-box {
+      padding: 12px;
+    }
+
+    .wine-name {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .wine-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(90px, 1fr));
+      gap: 8px;
+    }
+
+    .wine-detail {
+      background: #ffffff;
+      border: 1px solid #dfdfe4;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .wine-detail-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--info-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+
+    .wine-detail-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--info-text);
+      word-break: break-word;
+    }
+
+    .wine-item-actions {
+      display: flex;
+      gap: 8px;
+      padding: 0 12px 12px;
+      flex-wrap: wrap;
+    }
+
+    .empty-text {
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      color: white;
+    }
+
+    .tiny-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tiny-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .drag-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #cab7be;
+    }
+
+    @media (max-width: 700px) {
+      .field.small {
+        flex: 1;
+        min-width: 160px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .wine-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <h1>Wine Cellar</h1>
+      <div class="subtitle">
+        Multi-wine racks with drag-and-drop and search/filter.
+      </div>
+    </div>
+
+    <div class="panel compact-panel">
+      <div class="compact-row">
+        <div class="compact-left">
+          <div class="compact-title">Create / Update Cellar</div>
+          <div class="compact-subtitle">Use + or - to change rack count instantly.</div>
+        </div>
+
+        <div class="rack-stepper">
+          <button class="step-btn" onclick="changeRackCount(-1)">−</button>
+          <div class="rack-count-display">
+            <div class="rack-count-number" id="rackCountDisplay">6</div>
+            <div class="rack-count-label">Racks</div>
+          </div>
+          <button class="step-btn" onclick="changeRackCount(1)">+</button>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="badge" id="badgeRacks">Racks: 6</div>
+        <div class="badge" id="badgeFilled">Filled Racks: 0</div>
+        <div class="badge" id="badgeWines">Total Wines: 0</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Search / Filter Wines</h2>
+      <div class="row">
+        <div class="field">
+          <label for="searchText">Search</label>
+          <input id="searchText" type="text" placeholder="Search by name, origin, vintage, or type" oninput="renderAll()" />
+        </div>
+        <div class="field small">
+          <label for="filterRack">Rack</label>
+          <input id="filterRack" type="number" min="1" placeholder="All" oninput="renderAll()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Add Wine to Rack</h2>
+
+      <div class="row">
+        <div class="field">
+          <label for="wineName">Wine Name</label>
+          <input id="wineName" type="text" placeholder="e.g. Chateau Example" />
+        </div>
+
+        <div class="field">
+          <label for="origin">Origin</label>
+          <input id="origin" type="text" placeholder="e.g. Bordeaux, France" />
+        </div>
+
+        <div class="field small">
+          <label for="vintage">Vintage</label>
+          <input id="vintage" type="text" placeholder="e.g. 2018" />
+        </div>
+
+        <div class="field">
+          <label for="wineType">Type of Wine</label>
+          <input id="wineType" type="text" placeholder="e.g. Red, White, Sparkling" />
+        </div>
+
+        <div class="field small">
+          <label for="rackNumber">Rack Number</label>
+          <input id="rackNumber" type="number" min="1" value="1" />
+        </div>
+
+        <div class="field">
+          <label for="labelImage">Label Image</label>
+          <input id="labelImage" type="file" accept="image/*" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button onclick="autoDetectFromFilename()">Auto-Detect From Filename</button>
+        <button onclick="saveWineToRack()">Save Wine To Rack</button>
+        <button class="secondary" onclick="clearForm()">Clear Form</button>
+        <button class="secondary" onclick="resetAll()">Reset All</button>
+      </div>
+
+      <div class="status" id="statusText"></div>
+      <div class="notes" id="notesText"></div>
+      <div class="drag-hint">
+        Drag any wine card and drop it onto another rack to move it.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Cellar View</h2>
+      <div id="cellar" class="cellar"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "wineCellarDragDropFilterV1";
+
+    let state = {
+      rackCount: 6,
+      racks: []
+    };
+
+    let draggedWineId = null;
+    let draggedFromRack = null;
+
+    function init() {
+      loadState();
+      if (!state.racks || state.racks.length === 0) {
+        createEmptyRacks(6);
+      }
+      normalizeState();
+      renderAll();
+    }
+
+    function normalizeState() {
+      state.racks.forEach((rack, index) => {
+        if (!Array.isArray(rack.wines)) {
+          rack.wines = [];
+        }
+        rack.rackNumber = index + 1;
+      });
+    }
+
+    function createEmptyRacks(count) {
+      state.rackCount = count;
+      state.racks = [];
+      for (let i = 1; i <= count; i++) {
+        state.racks.push({
+          rackNumber: i,
+          wines: []
+        });
+      }
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      try {
+        state = JSON.parse(saved);
+      } catch (e) {
+        console.error("Unable to load state", e);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function generateId() {
+      return "wine_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    }
+
+    function changeRackCount(delta) {
+      let newCount = state.rackCount + delta;
+      if (newCount < 1) newCount = 1;
+      if (newCount > 100) newCount = 100;
+      if (newCount === state.rackCount) return;
+
+      const oldRacks = [...state.racks];
+      createEmptyRacks(newCount);
+
+      for (let i = 0; i < Math.min(oldRacks.length, state.racks.length); i++) {
+        state.racks[i] = oldRacks[i];
+        state.racks[i].rackNumber = i + 1;
+      }
+
+      saveState();
+      renderAll();
+      setStatus(`Rack count updated to ${newCount}.`);
+    }
+
+    function getRackIndexFromForm() {
+      const rackNumber = parseInt(document.getElementById("rackNumber").value, 10);
+      if (!rackNumber || rackNumber < 1 || rackNumber > state.rackCount) {
+        alert("Please enter a valid rack number.");
+        return null;
+      }
+      return rackNumber - 1;
+    }
+
+    function getSearchText() {
+      return document.getElementById("searchText").value.trim().toLowerCase();
+    }
+
+    function getFilterRackNumber() {
+      const value = document.getElementById("filterRack").value.trim();
+      if (!value) return null;
+      const num = parseInt(value, 10);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function matchesSearch(wine, rackNumber) {
+      const search = getSearchText();
+      const filterRack = getFilterRackNumber();
+
+      if (filterRack !== null && rackNumber !== filterRack) {
+        return false;
+      }
+
+      if (!search) return true;
+
+      const fields = [
+        wine.wineName,
+        wine.origin,
+        wine.vintage,
+        wine.wineType,
+        String(rackNumber)
+      ];
+
+      return fields.some(value =>
+        String(value || "").toLowerCase().includes(search)
+      );
+    }
+
+    function autoDetectFromFilename() {
+      const fileInput = document.getElementById("labelImage");
+      const file = fileInput.files && fileInput.files[0];
+
+      if (!file) {
+        setStatus("Please choose an image first.", true);
+        return;
+      }
+
+      const raw = file.name.replace(/\.[^/.]+$/, "");
+      const cleaned = raw.replace(/[_\s]+/g, "-");
+      const parts = cleaned.split("-").filter(Boolean);
+
+      let vintage = "";
+      const words = [];
+
+      for (const part of parts) {
+        if (/^\d{4}$/.test(part)) {
+          vintage = part;
+        } else {
+          words.push(capitalizeWord(part));
+        }
+      }
+
+      const guessedWineName = words.join(" ");
+
+      if (guessedWineName) document.getElementById("wineName").value = guessedWineName;
+      if (vintage) document.getElementById("vintage").value = vintage;
+
+      setStatus("Auto-detect completed from filename.");
+      setNotes("Please review origin and wine type manually.");
+    }
+
+    async function saveWineToRack() {
+      const rackIndex = getRackIndexFromForm();
+      if (rackIndex === null) return;
+
+      const wineName = document.getElementById("wineName").value.trim();
+      const origin = document.getElementById("origin").value.trim();
+      const vintage = document.getElementById("vintage").value.trim();
+      const wineType = document.getElementById("wineType").value.trim();
+      const fileInput = document.getElementById("labelImage");
+
+      if (!wineName) {
+        alert("Please enter a wine name.");
+        return;
+      }
+
+      let imageDataUrl = "";
+      if (fileInput.files && fileInput.files[0]) {
+        imageDataUrl = await fileToDataUrl(fileInput.files[0]);
+      }
+
+      const wine = {
+        id: generateId(),
+        wineName,
+        origin,
+        vintage,
+        wineType,
+        imageDataUrl
+      };
+
+      state.racks[rackIndex].wines.push(wine);
+
+      saveState();
+      renderAll();
+      clearForm(false);
+      setStatus(`Wine added to Rack ${rackIndex + 1}.`);
+      setNotes(`Rack ${rackIndex + 1} now contains ${state.racks[rackIndex].wines.length} wine(s).`);
+    }
+
+    function editWine(rackNumber, wineId) {
+      const rack = state.racks[rackNumber - 1];
+      const wine = rack.wines.find(w => w.id === wineId);
+      if (!wine) return;
+
+      document.getElementById("wineName").value = wine.wineName || "";
+      document.getElementById("origin").value = wine.origin || "";
+      document.getElementById("vintage").value = wine.vintage || "";
+      document.getElementById("wineType").value = wine.wineType || "";
+      document.getElementById("rackNumber").value = rackNumber;
+
+      removeWine(rackNumber, wineId, false);
+
+      setStatus(`Editing wine from Rack ${rackNumber}.`);
+      setNotes("Update the fields and click Save Wine To Rack.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function removeWine(rackNumber, wineId, rerender = true) {
+      const rack = state.racks[rackNumber - 1];
+      rack.wines = rack.wines.filter(w => w.id !== wineId);
+
+      saveState();
+      if (rerender) {
+        renderAll();
+        setStatus(`Wine removed from Rack ${rackNumber}.`);
+        setNotes("");
+      }
+    }
+
+    function clearRack(rackNumber) {
+      state.racks[rackNumber - 1].wines = [];
+      saveState();
+      renderAll();
+      setStatus(`Rack ${rackNumber} cleared.`);
+      setNotes("");
+    }
+
+    function clearForm(resetRack = true) {
+      document.getElementById("wineName").value = "";
+      document.getElementById("origin").value = "";
+      document.getElementById("vintage").value = "";
+      document.getElementById("wineType").value = "";
+      document.getElementById("labelImage").value = "";
+      if (resetRack) {
+        document.getElementById("rackNumber").value = "1";
+      }
+      setStatus("");
+      setNotes("");
+    }
+
+    function resetAll() {
+      if (!confirm("Reset the entire cellar?")) return;
+      createEmptyRacks(6);
+      clearForm();
+      saveState();
+      renderAll();
+      setStatus("Cellar reset.");
+    }
+
+    function onWineDragStart(event, wineId, rackNumber) {
+      draggedWineId = wineId;
+      draggedFromRack = rackNumber;
+      event.dataTransfer.setData("text/plain", JSON.stringify({ wineId, rackNumber }));
+      event.currentTarget.classList.add("dragging");
+    }
+
+    function onWineDragEnd(event) {
+      event.currentTarget.classList.remove("dragging");
+      clearDropTargets();
+    }
+
+    function onRackDragOver(event, rackNumber) {
+      event.preventDefault();
+      const card = document.getElementById(`rack-card-${rackNumber}`);
+      if (card) card.classList.add("drop-target");
+    }
+
+    function onRackDragLeave(rackNumber) {
+      const card = document.getElementById(`rack-card-${rackNumber}`);
+      if (card) card.classList.remove("drop-target");
+    }
+
+    function onRackDrop(event, targetRackNumber) {
+      event.preventDefault();
+
+      let payload;
+      try {
+        payload = JSON.parse(event.dataTransfer.getData("text/plain"));
+      } catch {
+        clearDropTargets();
+        return;
+      }
+
+      const { wineId, rackNumber: sourceRackNumber } = payload;
+      if (!wineId || !sourceRackNumber) {
+        clearDropTargets();
+        return;
+      }
+
+      if (sourceRackNumber === targetRackNumber) {
+        clearDropTargets();
+        setStatus(`Wine already in Rack ${targetRackNumber}.`);
+        return;
+      }
+
+      const sourceRack = state.racks[sourceRackNumber - 1];
+      const targetRack = state.racks[targetRackNumber - 1];
+      const wine = sourceRack.wines.find(w => w.id === wineId);
+
+      if (!wine) {
+        clearDropTargets();
+        return;
+      }
+
+      sourceRack.wines = sourceRack.wines.filter(w => w.id !== wineId);
+      targetRack.wines.push(wine);
+
+      saveState();
+      renderAll();
+      clearDropTargets();
+      setStatus(`Moved "${wine.wineName}" from Rack ${sourceRackNumber} to Rack ${targetRackNumber}.`);
+      setNotes("");
+    }
+
+    function clearDropTargets() {
+      document.querySelectorAll(".rack-card").forEach(card => {
+        card.classList.remove("drop-target");
+      });
+    }
+
+    function updateSummary() {
+      const filledRacks = state.racks.filter(r => r.wines && r.wines.length > 0).length;
+      const totalWines = state.racks.reduce((sum, rack) => sum + rack.wines.length, 0);
+
+      document.getElementById("rackCountDisplay").textContent = state.rackCount;
+      document.getElementById("badgeRacks").textContent = `Racks: ${state.rackCount}`;
+      document.getElementById("badgeFilled").textContent = `Filled Racks: ${filledRacks}`;
+      document.getElementById("badgeWines").textContent = `Total Wines: ${totalWines}`;
+    }
+
+    function renderCellar() {
+      const cellar = document.getElementById("cellar");
+      cellar.innerHTML = "";
+
+      state.racks.forEach(rack => {
+        const visibleWines = rack.wines.filter(wine => matchesSearch(wine, rack.rackNumber));
+        const hasAnyWines = rack.wines.length > 0;
+        const showsFilteredResults = visibleWines.length > 0;
+        const isEmpty = !hasAnyWines;
+
+        const shouldShowRack = getFilterRackNumber() === null
+          ? (hasAnyWines || !getSearchText())
+          : rack.rackNumber === getFilterRackNumber();
+
+        if (!shouldShowRack && !showsFilteredResults) {
+          return;
+        }
+
+        const card = document.createElement("div");
+        card.className = isEmpty ? "rack-card empty-card" : "rack-card";
+        card.id = `rack-card-${rack.rackNumber}`;
+        card.ondragover = (e) => onRackDragOver(e, rack.rackNumber);
+        card.ondragleave = () => onRackDragLeave(rack.rackNumber);
+        card.ondrop = (e) => onRackDrop(e, rack.rackNumber);
+
+        let contentHtml = "";
+
+        if (isEmpty) {
+          contentHtml = `<div class="rack-slot empty"><div class="empty-text">No wines in this rack</div></div>`;
+        } else if (visibleWines.length === 0) {
+          contentHtml = `<div class="rack-slot empty"><div class="empty-text">No wines in this rack match the current filter</div></div>`;
+        } else {
+          const wineItemsHtml = visibleWines.map(wine => `
+            <div
+              class="wine-item"
+              draggable="true"
+              ondragstart="onWineDragStart(event, '${wine.id}', ${rack.rackNumber})"
+              ondragend="onWineDragEnd(event)"
+            >
+              ${
+                wine.imageDataUrl
+                  ? `<img class="wine-image" src="${wine.imageDataUrl}" alt="Wine Label">`
+                  : `<div class="empty-text" style="color:#3d3d42;background:#fff;min-height:150px;display:flex;align-items:center;justify-content:center;">No label image</div>`
+              }
+              <div class="wine-info-box">
+                <div class="wine-name">${escapeHtml(wine.wineName)}</div>
+                <div class="wine-grid">
+                  <div class="wine-detail">
+                    <div class="wine-detail-label">Origin</div>
+                    <div class="wine-detail-value">${escapeHtml(wine.origin || "Not set")}</div>
+                  </div>
+                  <div class="wine-detail">
+                    <div class="wine-detail-label">Vintage</div>
+                    <div class="wine-detail-value">${escapeHtml(wine.vintage || "Not set")}</div>
+                  </div>
+                  <div class="wine-detail">
+                    <div class="wine-detail-label">Type</div>
+                    <div class="wine-detail-value">${escapeHtml(wine.wineType || "Not set")}</div>
+                  </div>
+                  <div class="wine-detail">
+                    <div class="wine-detail-label">Rack</div>
+                    <div class="wine-detail-value">${rack.rackNumber}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="wine-item-actions">
+                <button class="tiny-btn" onclick="editWine(${rack.rackNumber}, '${wine.id}')">Edit</button>
+                <button class="tiny-btn secondary" onclick="removeWine(${rack.rackNumber}, '${wine.id}')">Remove</button>
+              </div>
+            </div>
+          `).join("");
+
+          contentHtml = `
+            <div class="rack-slot">
+              <div class="wine-list">${wineItemsHtml}</div>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="rack-header">
+            <div>
+              <div class="rack-title">Rack ${rack.rackNumber}</div>
+              <div class="rack-sub">${rack.wines.length} wine(s) stored</div>
+            </div>
+          </div>
+
+          ${contentHtml}
+
+          <div class="tiny-actions">
+            <button class="tiny-btn secondary" onclick="clearRack(${rack.rackNumber})">Clear Rack</button>
+          </div>
+        `;
+
+        cellar.appendChild(card);
+      });
+    }
+
+    function renderAll() {
+      updateSummary();
+      renderCellar();
+    }
+
+    function setStatus(message, isError = false) {
+      const el = document.getElementById("statusText");
+      el.textContent = message || "";
+      el.style.color = isError ? "var(--danger)" : "var(--success)";
+    }
+
+    function setNotes(message) {
+      document.getElementById("notesText").textContent = message || "";
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function capitalizeWord(word) {
+      if (!word) return "";
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    init();
+  </script>
+</body>
+</html>
